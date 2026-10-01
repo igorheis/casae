@@ -2,6 +2,25 @@
 
 MVP mobile-first para organizar disponibilidade, eventos e despesas entre grupos de amigos. Interface em português, navegação inferior no celular e layout adaptável para desktop.
 
+## Telas do aplicativo
+
+As capturas abaixo mostram a experiência mobile do Casaê. Os arquivos originais estão organizados na pasta `BancoDeImagem - Casae/`.
+
+<details>
+<summary>Abrir galeria com 16 telas</summary>
+<br>
+<table>
+<tr><td align="center"><strong>Acesso e cadastro</strong><br><img src="BancoDeImagem%20-%20Casae/01-login.png" alt="Acesso e cadastro" width="240"></td><td align="center"><strong>Perfil e chave Pix</strong><br><img src="BancoDeImagem%20-%20Casae/02-perfil-pix.png" alt="Perfil e chave Pix" width="240"></td></tr>
+<tr><td align="center"><strong>Grupo e preferências</strong><br><img src="BancoDeImagem%20-%20Casae/03-grupo-e-preferencias.png" alt="Grupo e preferências" width="240"></td><td align="center"><strong>Tema e notificações</strong><br><img src="BancoDeImagem%20-%20Casae/04-tema-e-notificacoes.png" alt="Tema e notificações" width="240"></td></tr>
+<tr><td align="center"><strong>Início e resumo</strong><br><img src="BancoDeImagem%20-%20Casae/05-home-resumo.png" alt="Início e resumo" width="240"></td><td align="center"><strong>Calendário na Home</strong><br><img src="BancoDeImagem%20-%20Casae/06-home-calendario.png" alt="Calendário na Home" width="240"></td></tr>
+<tr><td align="center"><strong>Próximo evento e compromissos</strong><br><img src="BancoDeImagem%20-%20Casae/07-home-evento-e-compromissos.png" alt="Próximo evento e compromissos" width="240"></td><td align="center"><strong>Participantes do grupo</strong><br><img src="BancoDeImagem%20-%20Casae/08-home-grupo.png" alt="Participantes do grupo" width="240"></td></tr>
+<tr><td align="center"><strong>Calendário compartilhado</strong><br><img src="BancoDeImagem%20-%20Casae/09-calendario-compartilhado.png" alt="Calendário compartilhado" width="240"></td><td align="center"><strong>Página do evento</strong><br><img src="BancoDeImagem%20-%20Casae/10-evento-reveillon.png" alt="Página do evento" width="240"></td></tr>
+<tr><td align="center"><strong>Despesas do evento</strong><br><img src="BancoDeImagem%20-%20Casae/11-despesas-do-evento.png" alt="Despesas do evento" width="240"></td><td align="center"><strong>Resumo financeiro</strong><br><img src="BancoDeImagem%20-%20Casae/12-resumo-financeiro.png" alt="Resumo financeiro" width="240"></td></tr>
+<tr><td align="center"><strong>Saldos líquidos</strong><br><img src="BancoDeImagem%20-%20Casae/13-saldos-liquidos.png" alt="Saldos líquidos" width="240"></td><td align="center"><strong>Área de gastos</strong><br><img src="BancoDeImagem%20-%20Casae/14-area-de-gastos.png" alt="Área de gastos" width="240"></td></tr>
+<tr><td align="center"><strong>Extrato financeiro</strong><br><img src="BancoDeImagem%20-%20Casae/15-extrato-financeiro.png" alt="Extrato financeiro" width="240"></td><td align="center"><strong>Compensação de dívidas</strong><br><img src="BancoDeImagem%20-%20Casae/16-compensacao-de-dividas.png" alt="Compensação de dívidas" width="240"></td></tr>
+</table>
+</details>
+
 ## Stack e arquitetura
 
 - Next.js 15 (App Router), React 19 e TypeScript.
