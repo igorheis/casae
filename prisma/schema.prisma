@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String                  @id @default(cuid())
+  name                    String
+  email                   String                  @unique
+  passwordHash            String?
+  photoUrl                String?
+  whatsapp                String?
+  pixType                 PixType?
+  pixKey                  String?
+  createdAt               DateTime                @default(now())
+  memberships             GroupMember[]
+  commitments             Commitment[]
+  availability            Availability[]
+  paidExpenses            Expense[]               @relation("Payer")
+  expenseShares           ExpenseParticipant[]
+  paymentsMade            Payment[]               @relation("PaymentSender")
+  paymentsReceived        Payment[]               @relation("PaymentReceiver")
+  eventMemberships        EventMember[]
+  oauthAccounts           OAuthAccount[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference?
+  pushSubscriptions       PushSubscription[]
+  auditEntries            AuditLog[]              @relation("AuditActor")
+  paymentEvents           Payment[]               @relation("PaymentActor")
+}
+
+model OAuthAccount {
+  id                String        @id @default(cuid())
+  userId            String
+  provider          OAuthProvider
+  providerAccountId String
+  createdAt         DateTime      @default(now())
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+enum OAuthProvider {
+  GOOGLE
+  APPLE
+}
+
+enum PixType {
+  CPF
+  CNPJ
+  EMAIL
+  PHONE
+  RANDOM
+}
+
+model Group {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  emoji        String         @default("👋")
+  inviteCode   String         @unique @default(cuid())
+  createdAt    DateTime       @default(now())
+  members      GroupMember[]
+  events       Event[]
+  commitments  Commitment[]
+  availability Availability[]
+  auditLogs    AuditLog[]
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  groupId  String
+  userId   String
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+model Commitment {
+  id          String    @id @default(cuid())
+  groupId     String
+  userId      String
+  title       String
+  description String?
+  location    String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  allDay      Boolean   @default(false)
+  recurrence  String    @default("NEVER")
+  createdAt   DateTime  @default(now())
+  group       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, startsAt])
+}
+
+model Availability {
+  id      String             @id @default(cuid())
+  groupId String
+  userId  String
+  date    DateTime           @db.Date
+  status  AvailabilityStatus
+  group   Group              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId, date])
+}
+
+enum AvailabilityStatus {
+  FREE
+  BUSY
+  MAYBE
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  groupId     String
+  title       String
+  description String?
+  location    String?
+  emoji       String        @default("🎉")
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdAt   DateTime      @default(now())
+  group       Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  members     EventMember[]
+  expenses    Expense[]
+  payments    Payment[]
+  auditLogs   AuditLog[]
+
+  @@index([groupId, startsAt])
+}
+
+model EventMember {
+  id      String @id @default(cuid())
+  eventId String
+  userId  String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+model Expense {
+  id           String               @id @default(cuid())
+  eventId      String
+  payerId      String
+  description  String
+  category     ExpenseCategory
+  amountCents  Int
+  spentAt      DateTime             @default(now())
+  splitType    String               @default("EQUAL")
+  createdAt    DateTime             @default(now())
+  event        Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  payer        User                 @relation("Payer", fields: [payerId], references: [id])
+  participants ExpenseParticipant[]
+
+  @@index([eventId, spentAt])
+}
+
+enum ExpenseCategory {
+  LODGING
+  TRANSPORT
+  FOOD
+  DRINKS
+  TOURS
+  TICKETS
+  FUEL
+  SHOPPING
+  OTHER
+}
+
+model ExpenseParticipant {
+  id         String  @id @default(cuid())
+  expenseId  String
+  userId     String
+  shareCents Int
+  expense    Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user       User    @relation(fields: [userId], references: [id])
+
+  @@unique([expenseId, userId])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  eventId     String
+  fromUserId  String
+  toUserId    String
+  amountCents Int
+  paidAt      DateTime      @default(now())
+  note        String?
+  status      PaymentStatus @default(CONFIRMED)
+  markedAt    DateTime      @default(now())
+  confirmedAt DateTime?
+  markedById  String?
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sender      User          @relation("PaymentSender", fields: [fromUserId], references: [id])
+  receiver    User          @relation("PaymentReceiver", fields: [toUserId], references: [id])
+  markedBy    User?         @relation("PaymentActor", fields: [markedById], references: [id], onDelete: SetNull)
+
+  @@index([eventId, fromUserId, toUserId])
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  entityId  String?
+  groupId   String?
+  dedupeKey String?          @unique
+  readAt    DateTime?
+  pushedAt  DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+enum NotificationType {
+  COMMITMENT
+  EVENT
+  FINANCIAL
+  GROUP
+  SYSTEM
+}
+
+model NotificationPreference {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  commitments     Boolean         @default(true)
+  events          Boolean         @default(true)
+  financial       Boolean         @default(true)
+  groups          Boolean         @default(true)
+  reminderMinutes Int             @default(60)
+  pushEnabled     Boolean         @default(false)
+  theme           ThemePreference @default(SYSTEM)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt       DateTime        @updatedAt
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  groupId   String
+  eventId   String?
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String?
+  summary   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  event     Event?   @relation(fields: [eventId], references: [id])
+
+  @@index([groupId, createdAt])
+  @@index([eventId, createdAt])
+}

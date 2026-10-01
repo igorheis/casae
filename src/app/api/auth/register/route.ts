@@ -1,0 +1,6 @@
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
+import { db } from '@/lib/db'; import { createSession } from '@/lib/auth';
+const schema=z.object({name:z.string().min(2).max(80),email:z.string().email(),password:z.string().min(8)});
+export async function POST(req:Request){try{const input=schema.parse(await req.json());const user=await db.user.create({data:{name:input.name,email:input.email.toLowerCase(),passwordHash:await bcrypt.hash(input.password,12)}});await createSession(user.id);return NextResponse.json({id:user.id,name:user.name,email:user.email},{status:201});}catch(e){if(e instanceof z.ZodError)return NextResponse.json({error:'Confira os campos: nome, e-mail válido e senha com pelo menos 8 caracteres.'},{status:400});const code=typeof e==='object'&&e!==null&&'code'in e?String(e.code):'';if(code==='P2002'||(e instanceof Error&&e.message.includes('Unique')))return NextResponse.json({error:'Este e-mail já está cadastrado.'},{status:409});console.error('Falha ao cadastrar usuário:',e);return NextResponse.json({error:'Não foi possível acessar o banco de dados. O PostgreSQL precisa estar iniciado para criar sua conta.'},{status:503});}}
